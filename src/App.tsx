@@ -17,7 +17,6 @@ import {
   RotateCcw,
   Loader2,
   ArrowRight,
-  BadgeCheck,
   Mail
 } from 'lucide-react';
 
@@ -239,26 +238,16 @@ export default function App() {
           id="portal-header"
           className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white relative overflow-hidden p-6 sm:p-9"
         >
-          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1
-                id="app-title"
-                className="font-extrabold tracking-tight text-white flex items-center gap-2 text-2xl sm:text-3xl lg:text-4xl"
-              >
-                Transaction Password Reset 🔐✅
-              </h1>
-              <p className="text-blue-100 text-sm sm:text-base mt-2 font-medium">
-                টাকা তোলার উত্তোলন পাসওয়ার্ড রিসেট করুন এখানেই 👇
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 shrink-0 pt-2 sm:pt-0 border-t border-white/15 sm:border-t-0">
-              <span className="bg-white/10 backdrop-blur-xs border border-white/25 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <BadgeCheck className="w-4 h-4 text-emerald-300" />
-                স্বয়ংক্রিয় প্রসেসিং
-              </span>
-            </div>
+          <div className="relative z-10">
+            <h1
+              id="app-title"
+              className="font-extrabold tracking-tight text-white flex items-center gap-2 text-2xl sm:text-3xl lg:text-4xl"
+            >
+              Transaction Password Reset 🔐✅
+            </h1>
+            <p className="text-blue-100 text-sm sm:text-base mt-2 font-medium">
+              টাকা তোলার উত্তোলন পাসওয়ার্ড রিসেট করুন এখানেই 👇
+            </p>
           </div>
 
           {/* Background Vector Accent */}
@@ -535,13 +524,6 @@ export default function App() {
 
               {/* Section 2: Password & Verification */}
               <div className="space-y-5">
-                <div className="border-b border-slate-200/80 pb-2.5 flex items-center gap-2 text-slate-800 font-bold text-sm sm:text-base">
-                  <div className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center">
-                    <LockKeyhole className="w-4 h-4" />
-                  </div>
-                  <span>২. পাসওয়ার্ড ভেরিফিকেশন (Security Settings)</span>
-                </div>
-
                 {/* 4. Login Password Field */}
                 <motion.div
                   id="field-login-password"
@@ -737,9 +719,6 @@ export default function App() {
                   </>
                 )}
               </button>
-              <p className="text-center text-xs text-slate-500 mt-3 font-medium">
-                আপনার দেওয়া সকল তথ্য এনক্রিপ্ট করে স্বয়ংক্রিয় সার্ভারে পাঠানো হবে
-              </p>
             </div>
           </form>
         )}
@@ -747,15 +726,9 @@ export default function App() {
         {/* Footer Bar */}
         <div
           id="portal-footer"
-          className="bg-slate-50/90 border-t border-slate-200/80 flex flex-col sm:flex-row justify-between items-center gap-2 p-4 sm:p-5 px-6 sm:px-9"
+          className="bg-slate-50/90 border-t border-slate-200/80 flex flex-col sm:flex-row justify-center items-center gap-2 p-4 sm:p-5 px-6 sm:px-9"
         >
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
-            <p className="text-xs text-slate-600 font-semibold">
-              End-to-End Encrypted Reset Protocol
-            </p>
-          </div>
-          <p className="text-xs text-slate-400 italic font-medium">
+          <p className="text-xs text-slate-400 italic font-medium text-center">
             * Required fields must be filled accurately.
           </p>
         </div>
